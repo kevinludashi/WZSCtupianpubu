@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>纯图片瀑布流制作 3.0</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #imagePreview {
+            column-count: 6; /* 默认电脑端每行6张 */
+            column-gap: 10px; /* 确保列之间有间距 */
+            width: 100%;
+        }
+
+        /* 图片项的样式 */
+        .image-item {
+            display: inline-block;
+            width: 100%;
+            margin-bottom: 10px; /* 确保每张图片之间有10px的垂直间距 */
+            box-sizing: border-box; /* 让宽度计算包含边框和内边距 */
+        }
+
+        img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 5px;
+            cursor: pointer;
+            transition: transform 0.3s ease-in-out;
+            margin-left: 20px; /* 图片左侧间距 */
+            margin-right: 20px; /* 图片右侧间距 */
+        }
+
+        img:hover {
+            transform: scale(1.05);
+        }
+
+        input[type="file"] {
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        /* 设备小于768px时调整为每行2张 */
+        @media (max-width: 768px) {
+            #imagePreview {
+                column-count: 2; /* 手机端每行2张 */
+            }
+
+            img {
+                margin-left: 10px; /* 手机端左右间距减小 */
+                margin-right: 10px;
+            }
+        }
+
+        /* 说明文本样式 */
+        .note {
+            margin-top: 15px;
+            margin-bottom: 15px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border: 1px solid #8e8e8e;
+            border-radius: 5px;
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            background-color: #fff;
+        }
+
+        /* 输入框样式 */
+        .text-input {
+            width: 100%;
+            max-width: 600px;
+            padding: 10px;
+            font-size: 16px;
+            margin: 15px 0;
+            border: none;
+            box-sizing: border-box;
+            white-space: pre-wrap; /* 保留换行符 */
+            word-wrap: break-word; /* 防止内容过长 */
+            text-align: left; /* 文字左对齐 */
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>纯图片瀑布流制作 3.0</h1>
+
+    <!-- 发布按钮 -->
+    <button onclick="publishImages()">发布</button>
+
+    <!-- 图片上传 -->
+    <input type="file" id="imageUpload" accept="image/*" multiple>
+
+    <!-- 输入框1：在说明区域上方 -->
+    <textarea class="text-input" id="inputAbove" placeholder="请输入内容..."></textarea>
+
+    <!-- 说明区域 -->
+    <div class="note">
+        使用须知：图片太小可以双指捏放操作来放大网页查看;<br>常见问题: 部分浏览器打开无法批量添加图片，可尝试使用例如google chrome或Edge等主流浏览器;
+    </div>
+
+    <!-- 输入框2：在说明区域下方，图片区域上方 -->
+    <textarea class="text-input" id="inputBelow" placeholder="请输入内容..."></textarea>
+
+    <!-- 图片预览区域 -->
+    <div id="imagePreview"></div>
+
+    <script>
+        const imageUpload = document.getElementById('imageUpload');
+        const imagePreview = document.getElementById('imagePreview');
+        const inputAbove = document.getElementById('inputAbove');
+        const inputBelow = document.getElementById('inputBelow');
+
+        // 处理图片上传
+        imageUpload.addEventListener('change', function(event) {
+            const files = event.target.files;
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imgElement = document.createElement('img');
+                    imgElement.src = e.target.result;
+                    imgElement.classList.add('image-item');
+                    imagePreview.appendChild(imgElement);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // 发布并下载HTML文件
+        function publishImages() {
+            const images = document.querySelectorAll('.image-item');
+            const inputAboveContent = inputAbove.value;
+            const inputBelowContent = inputBelow.value;
+        
+            let htmlContent = `
+        <!DOCTYPE html>
+        <html lang="zh">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>图片瀑布流</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    margin: 0;
+                    padding: 20px;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                }
+        
+                #imagePreview {
+                    column-count: 6;  /* 每行显示6个图片 */
+                    column-gap: 10px;  /* 列间距 */
+                    width: 100%;
+                }
+        
+                .image-item {
+                    display: inline-block;
+                    width: 100%;
+                    margin-bottom: 10px;
+                    box-sizing: border-box;
+                    padding-left: 10px; /* 每个图片左侧间距 */
+                    padding-right: 10px; /* 每个图片右侧间距 */
+                }
+        
+                img {
+                    width: 100%;
+                    height: auto;
+                    display: block;
+                    border: 1px solid #ccc;
+                    border-radius: 5px;
+                    padding: 5px;
+					transition: transform 0.3s ease-in-out;
+                }
+				
+				img:hover {
+				                    transform: scale(1.05);
+				                }
+        
+                @media (max-width: 768px) {
+                    #imagePreview {
+                        column-count: 2;  /* 小屏幕时每行显示2个图片 */
+                    }
+                    .image-item {
+                        padding-left: 10px; /* 小屏幕时的左右间距 */
+                        padding-right: 10px;
+                    }
+                }
+        
+                .note {
+                    margin-top: 15px;
+                    margin-bottom: 15px;
+                    padding: 15px;
+                    background-color: #f9f9f9;
+                    border: 1px solid #8e8e8e;
+                    border-radius: 5px;
+                    width: 100%;
+                    max-width: 600px;
+                    text-align: center;
+                    font-size: 20px;
+                    font-weight: bold;
+                    color: #333;
+                    background-color: #fff;
+                }
+        
+                .text-input {
+                    width: 100%;
+                    max-width: 600px;
+                    padding: 10px;
+                    font-size: 16px;
+                    margin: 15px 0;
+                    border: none;
+                    box-sizing: border-box;
+                    white-space: pre-wrap;
+                    word-wrap: break-word;
+                    text-align: left;
+                }
+        
+            </style>
+        </head>
+        <body>
+            
+            <h1>·</h1>
+        
+            <!-- 输入框1：在说明区域上方 -->
+            <div class="text-input">${inputAboveContent}</div>
+        
+            <!-- 说明区域 -->
+            <div class="note">
+                使用须知：图片太小可以双指捏放操作来放大网页查看; 
+            </div>
+        
+            <!-- 输入框2：在说明区域下方，图片区域上方 -->
+            <div class="text-input">${inputBelowContent}</div>
+        
+            <!-- 图片预览区域 -->
+            <div id="imagePreview">
+        `;
+        
+            images.forEach(img => {
+                htmlContent += `<div class="image-item"><img src="${img.src}" alt="Image"></div>`;
+            });
+        
+            htmlContent += `</div></body></html>`;
+        
+            // 创建Blob对象并下载
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'images.html';
+            link.click();
+        }
+
+    </script>
+
+</body>
+</html>
